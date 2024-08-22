@@ -8,7 +8,7 @@ type BaseModel struct {
 	CreatedBy string       `gorm:"column:created_by;size:36;"`
 	UpdatedAt sql.NullTime `gorm:"column:updated_at;autoUpdateTime:milli"`
 	UpdatedBy string       `gorm:"column:updated_by;size:36;"`
-	DeletedAt sql.NullTime `gorm:"column:deleted_at"`
+	DeletedAt sql.NullTime `gorm:"column:deleted_at;index;"`
 	DeletedBy string       `gorm:"column:deleted_by;size:36;"`
 	Note      string       `gorm:"column:note;size:255;"`
 }
