@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"simple-golang-ewallet/internal/domain/model"
 )
 
 type dbConfig struct {
-	host     string
-	user     string
-	password string
-	dbName   string
-	port     string
-	sslMode  string
-	timezone string
+	host        string
+	user        string
+	password    string
+	dbName      string
+	port        string
+	sslMode     string
+	timezone    string
+	autoMigrate bool
 }
 
 func getDatabase(config dbConfig) (*gorm.DB, error) {
@@ -25,5 +27,31 @@ func getDatabase(config dbConfig) (*gorm.DB, error) {
 		config.port,
 		config.timezone,
 	)
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	if config.autoMigrate {
+		err = autoMigrate(db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return db, nil
+}
+
+func autoMigrate(db *gorm.DB) error {
+	err := []error{
+		db.AutoMigrate(&model.User{}),
+		db.AutoMigrate(&model.UserAccount{}),
+		db.AutoMigrate(&model.Provider{}),
+		db.AutoMigrate(&model.ProviderSetting{}),
+		db.AutoMigrate(&model.Transaction{}),
+	}
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }

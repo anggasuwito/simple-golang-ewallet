@@ -1,7 +1,12 @@
 package model
 
+func (m *ProviderSetting) TableName() string {
+	return "provider_setting"
+}
+
 type ProviderSetting struct {
 	BaseModel
+	Provider Provider `gorm:"foreignKey:ProviderID"`
 
 	ProviderID  string `gorm:"column:provider_id"`
 	Category    string `gorm:"column:category"`
