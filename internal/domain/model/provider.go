@@ -8,6 +8,6 @@ type Provider struct {
 	BaseModel
 	ProviderSetting []ProviderSetting `gorm:"foreignKey:ProviderID"`
 
-	Name   string `gorm:"column:name"`
-	Status string `gorm:"column:status"`
+	Name   string `gorm:"column:name;size:255;"`
+	Status string `gorm:"column:status;size:255;"`
 }

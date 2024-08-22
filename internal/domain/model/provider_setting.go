@@ -8,8 +8,8 @@ type ProviderSetting struct {
 	BaseModel
 	Provider Provider `gorm:"foreignKey:ProviderID"`
 
-	ProviderID  string `gorm:"column:provider_id"`
-	Category    string `gorm:"column:category"`
+	ProviderID  string `gorm:"column:provider_id;size:36;"`
+	Category    string `gorm:"column:category;size:255;"`
 	MinAmount   int64  `gorm:"column:min_amount"`
 	MaxAmount   int64  `gorm:"column:max_amount"`
 	ProviderFee int64  `gorm:"column:provider_fee"`
