@@ -1,7 +1,7 @@
 package entity
 
 type (
-	JWTClaimUserInfo struct {
+	JWTClaimAccountInfo struct {
 		ID    string `json:"id"`
 		Phone string `json:"phone"`
 		Name  string `json:"name"`
@@ -9,15 +9,18 @@ type (
 	}
 
 	JWTClaim struct {
-		ID        string           `json:"id"`
-		ExpiredAt int64            `json:"expired_at"`
-		UserInfo  JWTClaimUserInfo `json:"user_info"`
+		ID          string              `json:"id"`
+		ExpiredAt   int64               `json:"expired_at"`
+		AccountInfo JWTClaimAccountInfo `json:"account_info"`
 	}
 
 	AuthLoginPINRequest struct {
+		Phone string `json:"phone"`
+		PIN   string `json:"pin"`
 	}
 
 	AuthLoginPINResponse struct {
+		AccessToken string `json:"access_token"`
 	}
 
 	AuthVerifyPINRequest struct {

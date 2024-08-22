@@ -18,7 +18,7 @@ func ResponseError(c *gin.Context, err error) {
 	if err != nil {
 		var e *Error
 		if errors.As(err, &e) {
-			log.Println(fmt.Sprintf("%s - %s", e.Trace, e.Message))
+			log.Println(fmt.Sprintf("[%s] - %s", e.Trace, e.Message))
 			c.AbortWithStatusJSON(e.Code,
 				Response{
 					Code:    e.Code,

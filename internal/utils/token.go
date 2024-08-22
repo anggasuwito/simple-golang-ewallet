@@ -13,7 +13,7 @@ import (
 
 const claimsDataKey = "claims_data"
 
-func GenerateJWT(user *model.User) (tokenStr string, data entity.JWTClaim, err error) {
+func GenerateJWT(acc *model.UserAccount) (tokenStr string, data entity.JWTClaim, err error) {
 	tokenB := jwt.New(jwt.SigningMethodHS256)
 	claims := tokenB.Claims.(jwt.MapClaims)
 	cfg := config.GetConfig()
@@ -24,11 +24,11 @@ func GenerateJWT(user *model.User) (tokenStr string, data entity.JWTClaim, err e
 	data = entity.JWTClaim{
 		ID:        uuid.New().String(),
 		ExpiredAt: expiredAt,
-		UserInfo: entity.JWTClaimUserInfo{
-			ID:    user.ID,
-			Phone: user.Phone,
-			Name:  user.Name,
-			Email: user.Email,
+		AccountInfo: entity.JWTClaimAccountInfo{
+			ID:    acc.ID,
+			Phone: acc.Phone,
+			Name:  acc.Name,
+			Email: acc.Email,
 		},
 	}
 

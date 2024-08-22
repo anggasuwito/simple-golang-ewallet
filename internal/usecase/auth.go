@@ -4,6 +4,7 @@ import (
 	"context"
 	"simple-golang-ewallet/internal/domain/entity"
 	"simple-golang-ewallet/internal/repository"
+	"simple-golang-ewallet/internal/utils"
 )
 
 type AuthUC interface {
@@ -12,19 +13,31 @@ type AuthUC interface {
 }
 
 type authUC struct {
-	userRepo repository.UserRepo
+	accountRepo repository.UserAccountRepo
 }
 
 func NewAuthUC(
-	userRepo repository.UserRepo,
+	accountRepo repository.UserAccountRepo,
 ) AuthUC {
 	return &authUC{
-		userRepo: userRepo,
+		accountRepo: accountRepo,
 	}
 }
 
 func (u *authUC) LoginPIN(ctx context.Context, req *entity.AuthLoginPINRequest) (*entity.AuthLoginPINResponse, error) {
-	return &entity.AuthLoginPINResponse{}, nil
+	account, err := u.accountRepo.GetUserAccount(ctx, req.Phone)
+	if err != nil {
+		return nil, err
+	}
+
+	token, _, err := utils.GenerateJWT(account)
+	if err != nil {
+		return nil, utils.ErrInternal("Failed generate jwt : "+err.Error(), "authUC.LoginPIN.GenerateJWT")
+	}
+
+	return &entity.AuthLoginPINResponse{
+		AccessToken: token,
+	}, nil
 }
 
 func (u *authUC) VerifyPIN(ctx context.Context, req *entity.AuthVerifyPINRequest) (*entity.AuthVerifyPINResponse, error) {
