@@ -42,7 +42,6 @@ func getDatabase(config dbConfig) (*gorm.DB, error) {
 
 func autoMigrate(db *gorm.DB) error {
 	err := []error{
-		db.AutoMigrate(&model.User{}),
 		db.AutoMigrate(&model.UserAccount{}),
 		db.AutoMigrate(&model.Provider{}),
 		db.AutoMigrate(&model.ProviderSetting{}),

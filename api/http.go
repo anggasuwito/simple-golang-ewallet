@@ -28,15 +28,15 @@ func setupRouters(r *gin.Engine) {
 		c.JSON(http.StatusOK, gin.H{"message": "Success run " + cfg.AppVersion})
 	})
 
-	userRepo := repository.NewUserRepo(cfg.DBMaster)
+	userAccountRepo := repository.NewUserAccountRepo(cfg.DBMaster)
 	transactionRepo := repository.NewTransactionRepo(cfg.DBMaster)
 
-	authUC := usecase.NewAuthUC(userRepo)
-	userUC := usecase.NewUserUC(userRepo)
+	authUC := usecase.NewAuthUC(userAccountRepo)
+	userAccountUC := usecase.NewUserAccUC(userAccountRepo)
 	transactionUC := usecase.NewTransactionUC(transactionRepo)
 
 	handler.NewAuthHandler(authUC).SetupHandlers(r)
-	handler.NewUserHandler(userUC).SetupHandlers(r)
+	handler.NewUserAccHandler(userAccountUC).SetupHandlers(r)
 	handler.NewTransactionHandler(transactionUC).SetupHandlers(r)
 }
 
