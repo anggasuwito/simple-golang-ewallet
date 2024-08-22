@@ -1,11 +1,6 @@
 package entity
 
 type (
-	JWT struct {
-		ID    string `json:"id"`
-		Token string `json:"token"`
-	}
-
 	JWTClaimUserInfo struct {
 		ID    string `json:"id"`
 		Phone string `json:"phone"`
@@ -15,7 +10,7 @@ type (
 
 	JWTClaim struct {
 		ID        string           `json:"id"`
-		ExpiredAt string           `json:"expired_at"`
+		ExpiredAt int64            `json:"expired_at"`
 		UserInfo  JWTClaimUserInfo `json:"user_info"`
 	}
 

@@ -13,37 +13,33 @@ import (
 
 const claimsDataKey = "claims_data"
 
-func GenerateJWT(user *model.User) (entity.JWT, error) {
+func GenerateJWT(user *model.User) (tokenStr string, data entity.JWTClaim, err error) {
 	tokenB := jwt.New(jwt.SigningMethodHS256)
 	claims := tokenB.Claims.(jwt.MapClaims)
 	cfg := config.GetConfig()
 	tokenExpiredDuration, _ := time.ParseDuration(cfg.AccessTokenExpireDuration)
 
 	// Set payload
-	id := uuid.New().String()
 	expiredAt := TimeNow().Add(tokenExpiredDuration).Unix()
-	claims["expired_at"] = expiredAt
-	claims[claimsDataKey] = entity.JWTClaim{
-		ID:        "",
+	data = entity.JWTClaim{
+		ID:        uuid.New().String(),
 		ExpiredAt: expiredAt,
-		UserInfo:  entity.JWTClaimUserInfo{},
+		UserInfo: entity.JWTClaimUserInfo{
+			ID:    user.ID,
+			Phone: user.Phone,
+			Name:  user.Name,
+			Email: user.Email,
+		},
 	}
 
-			entity.JWTClaimUserInfo{
-		ID:    user.ID,
-		Phone: user.Phone,
-		Name:  user.Name,
-		Email: user.Email,
-	}
+	claims["expired_at"] = expiredAt
+	claims[claimsDataKey] = data
 
-	tokenString, err := tokenB.SignedString([]byte(cfg.AccessTokenSecret))
+	tokenStr, err = tokenB.SignedString([]byte(cfg.AccessTokenSecret))
 	if err != nil {
-		return entity.JWT{}, err
+		return "", data, err
 	}
-	return entity.JWT{
-		ID:    id,
-		Token: tokenString,
-	}, nil
+	return tokenStr, data, err
 }
 
 func VerifyJWT(token string) (jwtClaim entity.JWTClaim, err error) {
@@ -65,7 +61,7 @@ func VerifyJWT(token string) (jwtClaim entity.JWTClaim, err error) {
 		return jwtClaim, err
 	}
 
-	jsonClaims, err := json.Marshal(claims)
+	jsonClaims, err := json.Marshal(claims[claimsDataKey])
 	if err != nil {
 		return jwtClaim, err
 	}
