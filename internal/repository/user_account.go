@@ -8,7 +8,8 @@ import (
 )
 
 type UserAccountRepo interface {
-	GetUserAccount(ctx context.Context, phone string) (*model.UserAccount, error)
+	GetUserAccountByPhone(ctx context.Context, phone string) (*model.UserAccount, error)
+	GetUserAccountByID(ctx context.Context, id string) (*model.UserAccount, error)
 }
 
 type userAccountRepo struct {
@@ -21,7 +22,7 @@ func NewUserAccountRepo(masterDB *gorm.DB) UserAccountRepo {
 	}
 }
 
-func (r *userAccountRepo) GetUserAccount(ctx context.Context, phone string) (*model.UserAccount, error) {
+func (r *userAccountRepo) GetUserAccountByPhone(ctx context.Context, phone string) (*model.UserAccount, error) {
 	var data model.UserAccount
 
 	err := r.masterDB.
@@ -33,9 +34,29 @@ func (r *userAccountRepo) GetUserAccount(ctx context.Context, phone string) (*mo
 		Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, utils.ErrNotFound("User Account Not Found", "userAccountRepo.GetUserAccount.ErrRecordNotFound")
+			return nil, utils.ErrNotFound("User Account Not Found", "userAccountRepo.GetUserAccountByPhone.ErrRecordNotFound")
 		}
-		return nil, utils.ErrInternal("Failed get user account : "+err.Error(), "userAccountRepo.GetUserAccount")
+		return nil, utils.ErrInternal("Failed get user account : "+err.Error(), "userAccountRepo.GetUserAccountByPhone")
+	}
+
+	return &data, nil
+}
+
+func (r *userAccountRepo) GetUserAccountByID(ctx context.Context, id string) (*model.UserAccount, error) {
+	var data model.UserAccount
+
+	err := r.masterDB.
+		Debug().
+		Model(&model.UserAccount{}).
+		Where("deleted_at IS NULL").
+		Where("id = ?", id).
+		First(&data).
+		Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, utils.ErrNotFound("User Account Not Found", "userAccountRepo.GetUserAccountByID.ErrRecordNotFound")
+		}
+		return nil, utils.ErrInternal("Failed get user account : "+err.Error(), "userAccountRepo.GetUserAccountByID")
 	}
 
 	return &data, nil

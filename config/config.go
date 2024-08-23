@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -14,6 +15,7 @@ var (
 
 type Configuration struct {
 	DBMaster                  *gorm.DB
+	RedisClient               *redis.Client
 	HttpHost                  string
 	HttpPort                  string
 	AppVersion                string
@@ -42,7 +44,13 @@ func SetConfig() {
 		log.Fatal("[config] failed connecting database " + err.Error())
 	}
 
+	redisClient := getRedis(redisConfig{
+		address:  os.Getenv("REDIS_ADDR"),
+		password: os.Getenv("REDIS_PASSWORD"),
+	})
+
 	val.DBMaster = dbMaster
+	val.RedisClient = redisClient
 	val.HttpHost = os.Getenv("HTTP_HOST")
 	val.HttpPort = os.Getenv("HTTP_PORT")
 	val.AppVersion = os.Getenv("APP_VERSION")

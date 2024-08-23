@@ -57,6 +57,8 @@ func (h *AuthHandler) verifyPIN(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c, 10*time.Second)
 	defer cancel()
 
+	ctxVal := middleware.GetContextValue(c)
+	req.AccountID = ctxVal.AccountInfo.ID
 	resp, err := h.authUC.VerifyPIN(ctx, &req)
 	if err != nil {
 		utils.ResponseError(c, err)

@@ -7,7 +7,6 @@ func (m *UserAccount) TableName() string {
 type UserAccount struct {
 	BaseModel
 
-	UserID   string `gorm:"column:user_id;size:36;index;"`
 	Phone    string `gorm:"column:phone;size:100;"`
 	Name     string `gorm:"column:name;size:255;"`
 	Email    string `gorm:"column:email;size:255;"`

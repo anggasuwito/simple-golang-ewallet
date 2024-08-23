@@ -11,6 +11,7 @@ import (
 	handler "simple-golang-ewallet/internal/handler/http"
 	"simple-golang-ewallet/internal/repository"
 	"simple-golang-ewallet/internal/usecase"
+	"simple-golang-ewallet/internal/utils"
 	"syscall"
 	"time"
 )
@@ -25,13 +26,14 @@ func setupRouters(r *gin.Engine) {
 	cfg := config.GetConfig()
 
 	r.GET("", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "Success run " + cfg.AppVersion})
+		utils.ResponseSuccess(c, "Success run "+cfg.AppVersion, nil)
 	})
 
 	userAccountRepo := repository.NewUserAccountRepo(cfg.DBMaster)
 	transactionRepo := repository.NewTransactionRepo(cfg.DBMaster)
+	pinRepo := repository.NewPINRepo(cfg.RedisClient)
 
-	authUC := usecase.NewAuthUC(userAccountRepo)
+	authUC := usecase.NewAuthUC(userAccountRepo, pinRepo)
 	userAccountUC := usecase.NewUserAccUC(userAccountRepo)
 	transactionUC := usecase.NewTransactionUC(transactionRepo)
 

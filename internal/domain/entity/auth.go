@@ -24,6 +24,9 @@ type (
 	}
 
 	AuthVerifyPINRequest struct {
+		AccountID string
+		PIN       string `json:"pin"`
+		Type      string `json:"type"`
 	}
 
 	AuthVerifyPINResponse struct {
