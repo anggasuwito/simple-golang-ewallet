@@ -110,6 +110,10 @@ func (u *transactionUC) Transfer(ctx context.Context, req *entity.TransactionTra
 	if !verifiedPIN {
 		return nil, utils.ErrForbidden("Forbidden to access this resource", "transactionUC.Transfer.verifiedPIN")
 	}
+	err = u.pinRepo.DeleteVerifiedPINByTypeCache(ctx, req.AccountID, constant.PINTypeTransfer)
+	if err != nil {
+		return nil, err
+	}
 
 	account, err := u.userAccountRepo.GetUserAccountByID(ctx, req.AccountID)
 	if err != nil {
@@ -133,12 +137,12 @@ func (u *transactionUC) Transfer(ctx context.Context, req *entity.TransactionTra
 	if err = u.txWrapper.ExecuteTransaction(ctx,
 		func(ctxTX context.Context) error {
 			//update user account balance
-			err = u.userAccountRepo.UpdateUserBalance(ctxTX, account.ID, req.Amount, constant.INCREASE)
+			err = u.userAccountRepo.UpdateUserBalance(ctxTX, account.ID, req.Amount, constant.DECREASE)
 			if err != nil {
 				return err
 			}
 
-			err = u.userAccountRepo.UpdateUserBalance(ctxTX, toAccount.ID, req.Amount, constant.DECREASE)
+			err = u.userAccountRepo.UpdateUserBalance(ctxTX, toAccount.ID, req.Amount, constant.INCREASE)
 			if err != nil {
 				return err
 			}
@@ -201,5 +205,77 @@ func (u *transactionUC) Transfer(ctx context.Context, req *entity.TransactionTra
 }
 
 func (u *transactionUC) Withdraw(ctx context.Context, req *entity.TransactionWithdrawRequest) (*entity.TransactionWithdrawResponse, error) {
+	verifiedPIN, err := u.pinRepo.GetVerifiedPINByTypeCache(ctx, req.AccountID, constant.PINTypeWithdraw)
+	if err != nil {
+		return nil, err
+	}
+	if !verifiedPIN {
+		return nil, utils.ErrForbidden("Forbidden to access this resource", "transactionUC.Withdraw.verifiedPIN")
+	}
+	err = u.pinRepo.DeleteVerifiedPINByTypeCache(ctx, req.AccountID, constant.PINTypeWithdraw)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := u.userAccountRepo.GetUserAccountByID(ctx, req.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	providerSetting, err := u.providerSettingRepo.GetProviderSetting(ctx, constant.ProviderIDBankBCA, constant.TransactionTypeWithdraw)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Amount > account.Balance {
+		return nil, utils.ErrBadRequest("Insufficient balance", "transactionUC.Withdraw.InsufficientBalance")
+	}
+
+	if err = u.txWrapper.ExecuteTransaction(ctx,
+		func(ctxTX context.Context) error {
+			//update user account balance
+			err = u.userAccountRepo.UpdateUserBalance(ctxTX, account.ID, req.Amount, constant.DECREASE)
+			if err != nil {
+				return err
+			}
+
+			//create new transaction
+			newTransaction := &model.Transaction{}
+			newTransaction.CreateNewTransaction(&entity.CreateNewTransaction{
+				TransactionFrom:   constant.ProviderIDBankBCA,
+				TransactionTo:     account.ID,
+				ProviderID:        constant.ProviderIDBankBCA,
+				ProviderSettingID: providerSetting.ID,
+				Category:          constant.TransactionTypeWithdraw,
+				Amount:            req.Amount,
+				AdminFee:          providerSetting.AdminFee,
+				ProviderFee:       providerSetting.ProviderFee,
+			})
+			err = u.transactionRepo.CreateTransaction(ctxTX, newTransaction)
+			if err != nil {
+				return err
+			}
+
+			//create new balance movement
+			newBalanceMovement := &model.BalanceMovement{}
+			newBalanceMovement.CreateNewBalanceMovement(&entity.CreateNewBalanceMovement{
+				UserAccountID: account.ID,
+				TransactionID: newTransaction.ID,
+				Cashflow:      constant.CashflowOUT,
+				Amount:        req.Amount,
+				BalanceBefore: account.Balance,
+				BalanceAfter:  account.Balance - req.Amount,
+			})
+			err = u.balanceMovementRepo.CreateBalanceMovement(ctxTX, newBalanceMovement)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	); err != nil {
+		return nil, err
+	}
+
 	return &entity.TransactionWithdrawResponse{}, nil
 }

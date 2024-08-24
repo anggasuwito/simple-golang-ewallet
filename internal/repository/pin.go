@@ -9,6 +9,7 @@ import (
 
 type PINRepo interface {
 	SetVerifiedPINByTypeCache(ctx context.Context, accountID string, pinType string) error
+	DeleteVerifiedPINByTypeCache(ctx context.Context, accountID string, pinType string) error
 	GetVerifiedPINByTypeCache(ctx context.Context, accountID string, pinType string) (bool, error)
 }
 
@@ -38,4 +39,13 @@ func (r *pinRepo) GetVerifiedPINByTypeCache(ctx context.Context, accountID strin
 		return false, utils.ErrInternal("Failed get verified pin cache : "+err.Error(), "pinRepo.GetVerifiedPINByTypeCache.Get")
 	}
 	return exist, nil
+}
+
+func (r *pinRepo) DeleteVerifiedPINByTypeCache(ctx context.Context, accountID string, pinType string) error {
+	key := utils.GetVerifiedPINKey(accountID, pinType)
+	err := r.redisClient.Del(ctx, key).Err()
+	if err != nil {
+		return utils.ErrInternal("Failed delete verified pin cache : "+err.Error(), "pinRepo.DeleteVerifiedPINByTypeCache.Del")
+	}
+	return nil
 }

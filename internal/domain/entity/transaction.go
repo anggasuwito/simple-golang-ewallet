@@ -19,6 +19,9 @@ type (
 	}
 
 	TransactionWithdrawRequest struct {
+		ProviderID string `json:"provider_id"`
+		Amount     int64  `json:"amount"`
+		AccountID  string
 	}
 
 	TransactionWithdrawResponse struct {
