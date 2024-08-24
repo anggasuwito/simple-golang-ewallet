@@ -14,7 +14,7 @@ type BalanceMovement struct {
 
 	UserAccountID string `gorm:"column:user_account_id;size:36;"`
 	TransactionID string `gorm:"column:transaction_id;size:36;"`
-	Cashflow      string `gorm:"column:cashflow;size:100;"`
+	Cashflow      string `gorm:"column:cashflow;size:1m.0;"`
 	Amount        int64  `gorm:"column:amount"`
 	Description   string `gorm:"column:description;size:255;"`
 	BalanceBefore int64  `gorm:"column:balance_before"`
@@ -30,4 +30,15 @@ func (m *BalanceMovement) CreateNewBalanceMovement(req *entity.CreateNewBalanceM
 	m.Description = req.Description
 	m.BalanceBefore = req.BalanceBefore
 	m.BalanceAfter = req.BalanceAfter
+}
+
+func (m *BalanceMovement) ToEntity() *entity.BalanceMovement {
+	return &entity.BalanceMovement{
+		ID:            m.ID,
+		UserAccountID: m.UserAccountID,
+		TransactionID: m.TransactionID,
+		Cashflow:      m.Cashflow,
+		Amount:        m.Amount,
+		Description:   m.Description,
+	}
 }

@@ -12,21 +12,48 @@ type UserAccUC interface {
 }
 
 type userAccUC struct {
-	userAccRepo repository.UserAccountRepo
+	userAccRepo         repository.UserAccountRepo
+	balanceMovementRepo repository.BalanceMovementRepo
 }
 
 func NewUserAccUC(
 	userAccRepo repository.UserAccountRepo,
+	balanceMovementRepo repository.BalanceMovementRepo,
 ) UserAccUC {
 	return &userAccUC{
-		userAccRepo: userAccRepo,
+		userAccRepo:         userAccRepo,
+		balanceMovementRepo: balanceMovementRepo,
 	}
 }
 
 func (u *userAccUC) GetInfo(ctx context.Context, req *entity.UserAccGetInfoRequest) (*entity.UserAccGetInfoResponse, error) {
-	return &entity.UserAccGetInfoResponse{}, nil
+	account, err := u.userAccRepo.GetUserAccountByID(ctx, req.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entity.UserAccGetInfoResponse{
+		account.ToEntity(),
+	}, nil
 }
 
 func (u *userAccUC) GetTransactionHistory(ctx context.Context, req *entity.UserAccGetTransactionHistoryRequest) (*entity.UserAccGetTransactionHistoryResponse, error) {
-	return &entity.UserAccGetTransactionHistoryResponse{}, nil
+	_, err := u.userAccRepo.GetUserAccountByID(ctx, req.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	balanceMovementList, err := u.balanceMovementRepo.GetUserAccBalanceMovementList(ctx, req.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp []*entity.BalanceMovement
+	for _, bm := range balanceMovementList {
+		resp = append(resp, bm.ToEntity())
+	}
+
+	return &entity.UserAccGetTransactionHistoryResponse{
+		List: resp,
+	}, nil
 }
