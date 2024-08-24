@@ -34,7 +34,7 @@ func (r *pinRepo) SetVerifiedPINByTypeCache(ctx context.Context, accountID strin
 func (r *pinRepo) GetVerifiedPINByTypeCache(ctx context.Context, accountID string, pinType string) (bool, error) {
 	key := utils.GetVerifiedPINKey(accountID, pinType)
 	exist, err := r.redisClient.Get(ctx, key).Bool()
-	if err != nil {
+	if err != nil && err != redis.Nil {
 		return false, utils.ErrInternal("Failed get verified pin cache : "+err.Error(), "pinRepo.GetVerifiedPINByTypeCache.Get")
 	}
 	return exist, nil

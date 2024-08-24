@@ -46,6 +46,7 @@ func autoMigrate(db *gorm.DB) error {
 		db.AutoMigrate(&model.Provider{}),
 		db.AutoMigrate(&model.ProviderSetting{}),
 		db.AutoMigrate(&model.Transaction{}),
+		db.AutoMigrate(&model.BalanceMovement{}),
 	}
 	for _, e := range err {
 		if e != nil {

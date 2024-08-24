@@ -32,10 +32,13 @@ func setupRouters(r *gin.Engine) {
 	userAccountRepo := repository.NewUserAccountRepo(cfg.DBMaster)
 	transactionRepo := repository.NewTransactionRepo(cfg.DBMaster)
 	pinRepo := repository.NewPINRepo(cfg.RedisClient)
+	balanceMovementRepo := repository.NewBalanceMovementRepo(cfg.DBMaster)
+	providerSettingRepo := repository.NewProviderSettingRepo(cfg.DBMaster)
+	txWrapper := repository.NewTransactionWrapper(cfg.DBMaster)
 
 	authUC := usecase.NewAuthUC(userAccountRepo, pinRepo)
 	userAccountUC := usecase.NewUserAccUC(userAccountRepo)
-	transactionUC := usecase.NewTransactionUC(transactionRepo)
+	transactionUC := usecase.NewTransactionUC(txWrapper, userAccountRepo, transactionRepo, balanceMovementRepo, providerSettingRepo, pinRepo)
 
 	handler.NewAuthHandler(authUC).SetupHandlers(r)
 	handler.NewUserAccHandler(userAccountUC).SetupHandlers(r)

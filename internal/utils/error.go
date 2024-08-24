@@ -46,3 +46,11 @@ func ErrUnauthorized(message, trace string) error {
 		Trace:   trace,
 	}
 }
+
+func ErrForbidden(message, trace string) error {
+	return &Error{
+		Code:    http.StatusForbidden,
+		Message: message,
+		Trace:   trace,
+	}
+}
