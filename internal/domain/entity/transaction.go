@@ -10,6 +10,9 @@ type (
 	}
 
 	TransactionTransferRequest struct {
+		ToAccountID string `json:"to_account_id"`
+		Amount      int64  `json:"amount"`
+		AccountID   string
 	}
 
 	TransactionTransferResponse struct {

@@ -8,7 +8,7 @@ import (
 )
 
 type ProviderSettingRepo interface {
-	GetSettingByProviderID(ctx context.Context, providerID string) (*model.ProviderSetting, error)
+	GetProviderSetting(ctx context.Context, providerID string, settingType string) (*model.ProviderSetting, error)
 }
 
 type providerSettingRepo struct {
@@ -21,7 +21,7 @@ func NewProviderSettingRepo(masterDB *gorm.DB) ProviderSettingRepo {
 	}
 }
 
-func (r *providerSettingRepo) GetSettingByProviderID(ctx context.Context, providerID string) (*model.ProviderSetting, error) {
+func (r *providerSettingRepo) GetProviderSetting(ctx context.Context, providerID string, settingType string) (*model.ProviderSetting, error) {
 	var data model.ProviderSetting
 
 	err := r.masterDB.
@@ -29,13 +29,14 @@ func (r *providerSettingRepo) GetSettingByProviderID(ctx context.Context, provid
 		Model(&model.ProviderSetting{}).
 		Where("deleted_at IS NULL").
 		Where("provider_id = ?", providerID).
+		Where("category = ?", settingType).
 		First(&data).
 		Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, utils.ErrNotFound("Provider Setting Not Found", "providerSettingRepo.GetSettingByProviderID.ErrRecordNotFound")
+			return nil, utils.ErrNotFound("Provider Setting Not Found", "providerSettingRepo.GetProviderSetting.ErrRecordNotFound")
 		}
-		return nil, utils.ErrInternal("Failed get provider setting : "+err.Error(), "providerSettingRepo.GetSettingByProviderID")
+		return nil, utils.ErrInternal("Failed get provider setting : "+err.Error(), "providerSettingRepo.GetProviderSetting")
 	}
 
 	return &data, nil
